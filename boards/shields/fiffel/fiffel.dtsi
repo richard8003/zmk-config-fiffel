@@ -1,8 +1,19 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 
+
  / {
+   
+   physical_layout0: physical_layout_0 { // First physical layout, use different naming for other layoutj
+     compatible = "zmk,physical-layout";
+     display-name = "Default Layout";
+     kscan = <&kscan0>; // Label of the kscan node, optional if all layouts use the same
+     transform = <&default_transform>; // Label of the matrix transform for this layout
+   };
+
+
   chosen {
     zmk,kscan = &kscan0;
+    zmk,physical-layout = &physical_layout0;
   };
 
   /* 4 rader × 6 kol/halva (12 totalt). Nederst 3 tummar/halva (innerkolumner). */
@@ -19,10 +30,8 @@
   };
 
   kscan0: kscan {
-    compatible = "zmk,kscan-gpio";
+    compatible = "zmk,kscan-gpio-matrix";
     diode-direction = "col2row";
-    rows = <4>;
-    columns = <6>;
     row-gpios = <&pro_micro 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
                 <&pro_micro 16 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
                 <&pro_micro 14 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,

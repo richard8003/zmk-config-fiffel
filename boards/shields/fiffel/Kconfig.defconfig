@@ -1,15 +1,20 @@
 if SHIELD_FIFFEL_LEFT
+
+config ZMK_KEYBOARD_NAME
+    default "Fiffel"
+
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
-config ZMK_SPLIT_BLE
-    default y
-config ZMK_USB
-    default y     # USB endast på central
+
+
+#config ZMK_USB
+#    default y     # USB endast på central
+
 endif
 
-if SHIELD_FIFFEL_RIGHT
-config ZMK_SPLIT_ROLE_PERIPHERAL
-    default y
+if SHIELD_FIFFEL_RIGHT || SHIELD_FIFFEL_LEFT
+
 config ZMK_SPLIT_BLE
     default y
+
 endif

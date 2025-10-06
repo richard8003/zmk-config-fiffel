@@ -1,7 +1,5 @@
 config SHIELD_FIFFEL_LEFT
-    bool "Fiffel (left)"
-    select SHIELD_PRO_MICRO
+    def_bool $(shields_list_contains,fiffel_left)
 
 config SHIELD_FIFFEL_RIGHT
-    bool "Fiffel (right)"
-    select SHIELD_PRO_MICRO
+    def_bool $(shields_list_contains,fiffel_right)
