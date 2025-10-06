@@ -2,6 +2,6 @@ file_format: "1"
 id: fiffel
 name: Fiffel
 type: shield
-requires: [pro_micro]        # funkar för nice!nano v2
+requires: [pro_micro]
 features: [keys]
-variants: [fiffel_left, fiffel_right]
+variants: [left, right]   # <-- viktigt: bara left/right
