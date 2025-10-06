@@ -1,0 +1,67 @@
+name: Build ZMK (fiffel)
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shield: [fiffel_left, fiffel_right]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ wget xz-utils git python3-pip
+          pip3 install --user west
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Zephyr SDK
+        run: |
+          wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.8/zephyr-sdk-0.16.8_linux-x86_64.tar.xz
+          tar -xf zephyr-sdk-0.16.8_linux-x86_64.tar.xz
+          sudo mv zephyr-sdk-0.16.8 /opt/zephyr-sdk
+          /opt/zephyr-sdk/setup.sh -c
+
+      - name: Get ZMK source
+        run: git clone --depth=1 https://github.com/zmkfirmware/zmk.git zmk
+
+      - name: Prepare west workspace
+        env:
+          ZEPHYR_TOOLCHAIN_VARIANT: zephyr
+          ZEPHYR_SDK_INSTALL_DIR: /opt/zephyr-sdk
+        run: |
+          west init -l zmk/app
+          cd zmk
+          west update
+          west zephyr-export
+          cd ..
+          pip3 install --user -r zmk/app/zephyr/scripts/requirements.txt
+
+      - name: Build ${{ matrix.shield }}
+        env:
+          ZEPHYR_TOOLCHAIN_VARIANT: zephyr
+          ZEPHYR_SDK_INSTALL_DIR: /opt/zephyr-sdk
+          ZMK_EXTRA_MODULES: ${{ github.workspace }}
+          ZMK_CONFIG: ${{ github.workspace }}/config
+        run: |
+          rm -rf build
+          EXTRA="-DOVERLAY_CONFIG=${{ github.workspace }}/config/${{ matrix.shield }}.conf"
+          [ -f "${{ github.workspace }}/config/${{ matrix.shield }}.conf" ] || EXTRA=""
+          west build -p -b nice_nano_v2 zmk/app -- \
+            -DSHIELD=${{ matrix.shield }} \
+            -DZMK_CONFIG=${ZMK_CONFIG} \
+            ${EXTRA}
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.shield }}-nice_nano_v2-zmk
+          path: |
+            build/zephyr/zmk.uf2
+            build/zephyr/zmk.hex
+            build/zephyr/zephyr.dts
+            build/zephyr/.config

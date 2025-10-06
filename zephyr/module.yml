@@ -1,0 +1,4 @@
+name: fiffel
+build:
+  cmake: .
+  kconfig: zephyr/Kconfig
