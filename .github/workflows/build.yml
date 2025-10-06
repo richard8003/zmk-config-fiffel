@@ -1,5 +1,8 @@
 name: Build ZMK (fiffel)
-on: [push, workflow_dispatch]
+
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,7 +13,8 @@ jobs:
         shield: [fiffel_left, fiffel_right]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Install prerequisites
         run: |
@@ -34,24 +38,27 @@ jobs:
           ZEPHYR_TOOLCHAIN_VARIANT: zephyr
           ZEPHYR_SDK_INSTALL_DIR: /opt/zephyr-sdk
         run: |
-          west init -l zmk/app
+          python3 -m west init -l zmk/app
           cd zmk
-          west update
-          west zephyr-export
+          python3 -m west update
+          python3 -m west zephyr-export
           cd ..
+          # Rätt sökväg till Zephyrs python-krav:
           pip3 install -r zmk/zephyr/scripts/requirements.txt
+          # Visa vilken west-version som används (debug)
+          python3 -m west --version
 
       - name: Build ${{ matrix.shield }}
         env:
           ZEPHYR_TOOLCHAIN_VARIANT: zephyr
           ZEPHYR_SDK_INSTALL_DIR: /opt/zephyr-sdk
-          ZMK_EXTRA_MODULES: ${{ github.workspace }}
-          ZMK_CONFIG: ${{ github.workspace }}/config
+          ZMK_EXTRA_MODULES: ${{ github.workspace }}   # ditt repo (fiffel-shield)
+          ZMK_CONFIG: ${{ github.workspace }}/config   # din config/
         run: |
           rm -rf build
           EXTRA="-DOVERLAY_CONFIG=${{ github.workspace }}/config/${{ matrix.shield }}.conf"
           [ -f "${{ github.workspace }}/config/${{ matrix.shield }}.conf" ] || EXTRA=""
-          west build -p -b nice_nano_v2 zmk/app -- \
+          python3 -m west build -p -b nice_nano_v2 zmk/app -- \
             -DSHIELD=${{ matrix.shield }} \
             -DZMK_CONFIG=${ZMK_CONFIG} \
             ${EXTRA}
