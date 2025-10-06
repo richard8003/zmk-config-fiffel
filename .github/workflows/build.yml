@@ -44,7 +44,6 @@ jobs:
           python3 -m west zephyr-export
           cd ..
           pip3 install -r zmk/zephyr/scripts/requirements.txt
-          # Gör ZEPHYR_BASE tillgängligt i nästa steg
           echo "ZEPHYR_BASE=${{ github.workspace }}/zmk/zephyr" >> $GITHUB_ENV
 
       - name: Build ${{ matrix.shield }}
@@ -52,17 +51,16 @@ jobs:
           ZEPHYR_TOOLCHAIN_VARIANT: zephyr
           ZEPHYR_SDK_INSTALL_DIR: /opt/zephyr-sdk
           ZEPHYR_BASE: ${{ env.ZEPHYR_BASE }}
-          ZMK_EXTRA_MODULES: ${{ github.workspace }}          # ditt repo (fiffel-shielden)
-          ZMK_CONFIG: ${{ github.workspace }}/config          # din config/
+          ZMK_CONFIG: ${{ github.workspace }}/config
         run: |
           rm -rf build
           EXTRA="-DOVERLAY_CONFIG=${{ github.workspace }}/config/${{ matrix.shield }}.conf"
           [ -f "${{ github.workspace }}/config/${{ matrix.shield }}.conf" ] || EXTRA=""
-          # Kör build INNE I zmk/ så west hittar workspacen + extensions
           cd zmk
           python3 -m west build -p -b nice_nano_v2 app -- \
             -DSHIELD=${{ matrix.shield }} \
             -DZMK_CONFIG=${{ github.workspace }}/config \
+            -DZMK_EXTRA_MODULES=${{ github.workspace }} \
             ${EXTRA}
           cd ..
 
